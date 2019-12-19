@@ -18,8 +18,7 @@ moviesRouter.post('', (req, res) => {
             console.log("in posting new movie", err);
             res.status(500).json(err);
         });
-}
-);
+});
 
 moviesRouter.get('', (req, res) => {
     db.find(MovieModel, {}, { screenings: 0 })
@@ -44,38 +43,17 @@ moviesRouter.get('/screenings', (req, res) => {
         })
 });
 
-
-
 moviesRouter.get('/screenings/:movieId', (req, res) => {
-    db.find(MovieModel, { _id: req.params.moveId }, { screenings: 1 })
+    db.findOne(MovieModel, { _id: req.params.movieId }, { screenings: 1 })
         .then(data => {
-            res.status(200).json(data);
+            console.log(data)
+            res.status(200).json(data.screenings);
         })
         .catch((err) => {
             res.status(500).json(err);
         })
 });
 
-
-function checkNoTimeOverlap(movieId, datetime) {
-    db.findOne(MovieModel, { _id: movieId }, { screenings: 1, length: 1 })
-        .then(data => {
-            if (data == {}) return false;
-            let lenInMillsecs = data.length * 60 * 60 * 100;
-            times = data.screenings.map((elem) => { return elem.screengingtime })
-            if (times.length == 0) {
-                return true;
-            }
-            minDiff = times.reduce((preVal, currVal) => {
-                return Math.min(preVal, Math.abs(currVal - datetime));
-            }, lenInMillsecs) // hour to milliseconds
-            return minDiff == lenInMillsecs
-        })
-        .catch((err) => {
-            throw err
-        })
-
-}
 
 moviesRouter.put('/screenings/:movieId', (req, res) => {
     let screengingtime = new Date(req.body.screengingtime);
@@ -115,7 +93,7 @@ moviesRouter.put('/screenings/:movieId', (req, res) => {
 moviesRouter.put('/reserve/:movieId/:screeningId', (req, res) => {
     let movieId = req.params.movieId
     let screeningId = req.params.screeningId
-    let pos = { row, column } = req.body
+    let { row, column } = req.body
     db.findOne(MovieModel, { _id: movieId }, { screen: 1 })
         .then(movie => {
             if (movie) {
@@ -160,13 +138,27 @@ moviesRouter.put('/reserve/:movieId/:screeningId', (req, res) => {
 });
 
 
+moviesRouter.get('/reserve/:movieId/:screeningId', (req, res) => {
+    let { movieId, screeningId } = req.params
+    db.findOne(MovieModel, { _id: movieId, "screenings._id": screeningId }, { "screenings.reservations": 1 })
+        .then(data => {
+            if (data) {
+                res.status(200).json(data.screenings[0].reservations);
+            } else {
+                res.status(502).json({ errMsg: "wrong movieid and/or screeningid" });
+            }
+        }).catch((err) => {
+            res.status(500).json({ errMsg: "unexpected error" });
+        })
+});
+
+
 moviesRouter.get('/reserve/:movieId', (req, res) => {
     let movieId = req.params.movieId
-    let { row, column } = req.body
     db.findOne(MovieModel, { _id: movieId }, { "screenings.reservations": 1 })
         .then(data => {
             if (data) {
-                res.status(200).json(data);
+                res.status(200).json(data.screenings);
             } else {
                 res.status(502).json({ errMsg: "there is no movie with given id" });
             }
