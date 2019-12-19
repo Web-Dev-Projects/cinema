@@ -105,7 +105,7 @@ moviesRouter.put('/reserve/:movieId/:screeningId', (req, res) => {
                             })
                                 .then((data) => {
                                     if (data) {
-                                        res.status(502).json({ errMsg: "wrong already reserved" });
+                                        res.status(502).json({ reserved: false, errMsg: "wrong already reserved" });
                                     } else {
                                         MovieModel.updateOne({
                                             _id: movieId, 'screenings._id': screeningId
@@ -114,13 +114,13 @@ moviesRouter.put('/reserve/:movieId/:screeningId', (req, res) => {
                                                 res.status(200).json({ reserved: true });
                                             })
                                             .catch((err) => {
-                                                res.status(500).json(err);
+                                                res.status(500).json({ reserved: false, errMsg: err });
                                             })
                                     }
                                 })
 
                         } else {
-                            res.status(502).json({ errMsg: "wrong seat" });
+                            res.status(502).json({ reserved: false, errMsg: "wrong seat" });
                         }
 
                     })
@@ -128,7 +128,7 @@ moviesRouter.put('/reserve/:movieId/:screeningId', (req, res) => {
                         res.status(500).json(err);
                     })
             } else {
-                res.status(502).json({ errMsg: "there is no movie with given id" });
+                res.status(502).json({ reserved: false, errMsg: "there is no movie with given id" });
             }
 
         }).catch(err => {
