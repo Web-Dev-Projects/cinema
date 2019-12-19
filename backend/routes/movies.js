@@ -46,7 +46,6 @@ moviesRouter.get('/screenings', (req, res) => {
 moviesRouter.get('/screenings/:movieId', (req, res) => {
     db.findOne(MovieModel, { _id: req.params.movieId }, { screenings: 1 })
         .then(data => {
-            console.log(data)
             res.status(200).json(data.screenings);
         })
         .catch((err) => {
