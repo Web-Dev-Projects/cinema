@@ -2,6 +2,7 @@ const MovieModel = require('../models/movie')
 const ScreenModel = require('../models/screen')
 const authenticate = require('../middlewares/authenticate');
 const express = require('express')
+const moment = require('moment')
 // const checkSession = require('../middlewares/check-session')
 // const tokenDecoder = require('../middlewares/access-token-decode')
 const db = require('../db')
@@ -55,32 +56,51 @@ moviesRouter.get('/screenings/:movieId', (req, res) => {
 
 
 moviesRouter.put('/screenings/:movieId', (req, res) => {
-    let screengingtime = new Date(req.body.screengingtime);
+    let screengingtime = new Date(moment(req.body.screengingtime).toDate());
     let movieId = req.params.movieId;
-    db.findOne(MovieModel, { _id: movieId }, { screenings: 1, length: 1 })
-        .then(data => {
-            if (data) {
-                let lenInMillsecs = data.length * 60 * 60 * 1000;
-                times = data.screenings.map((elem) => { return elem.screengingtime })
-                minDiff = times.reduce((preVal, currVal) => {
-                    return Math.min(preVal, Math.abs(currVal - screengingtime));
-                }, lenInMillsecs) // hour to milliseconds
-                nonoverlap = minDiff == lenInMillsecs;
-                if (nonoverlap) {
-                    db.addElemToList(MovieModel, movieId, "screenings", { screengingtime: screengingtime })
-                        .then(data => {
-                            res.status(200).json(data);
-                        })
-                        .catch((err) => {
-                            res.status(500).json(err);
-                        })
+    db.findOne(MovieModel, { _id: movieId }, { screen: 1 })
+        .then(movie => {
+            let screen = movie.screen;
+            // get all movies in same screen
+            if (movie) {
+                db.find(MovieModel, { screen: screen }, { screenings: 1, length: 1 })
+                    .then((movies) => {
+                        let noOverLapWithAllMovies = true;
+                        movies.forEach(movie => {
+                            let lenInMillsecs = movie.length * 60 * 60 * 1000;
+                            if (movie.screenings.length) {
+                                times = movie.screenings.map((elem) => { return elem.screengingtime })
+                                minDiff = times.reduce((preVal, currVal) => {
+                                    return Math.min(preVal, Math.abs(currVal - screengingtime));
+                                }, lenInMillsecs) // hour to milliseconds
+                                if (minDiff != lenInMillsecs) {
+                                    noOverLapWithAllMovies = false;
+                                    return;
+                                }
+                            }
+                        });
 
-                } else {
-                    res.status(502).json({ errMsg: "there is already screening in this period" });
-                }
+                        if (noOverLapWithAllMovies) {
+                            db.addElemToList(MovieModel, movieId, "screenings", { screengingtime: screengingtime })
+                                .then(movie => {
+                                    res.status(200).json(movie);
+                                })
+                                .catch((err) => {
+                                    res.status(500).json(err);
+                                })
+                        } else {
+                            res.status(502).json({ errMsg: "there is already screening in this period" });
+                        }
+                    })
+                    .catch()
             } else {
                 res.status(502).json({ errMsg: "there is no movie with given id" });
             }
+
+
+            // get all screenings in that screen
+
+
         })
         .catch((err) => {
             console.log(err)
@@ -102,22 +122,21 @@ moviesRouter.put('/reserve/:movieId/:screeningId', (req, res) => {
                             MovieModel.findOne({
                                 _id: movieId, 'screenings._id': screeningId,
                                 "screenings.reservations": { $elemMatch: { row: row, column: column } }
+                            }).then((data) => {
+                                if (data) {
+                                    res.status(502).json({ reserved: false, errMsg: "wrong already reserved" });
+                                } else {
+                                    MovieModel.updateOne({
+                                        _id: movieId, 'screenings._id': screeningId
+                                    }, { $addToSet: { "screenings.$.reservations": { row, column } } })
+                                        .then(() => {
+                                            res.status(200).json({ reserved: true });
+                                        })
+                                        .catch((err) => {
+                                            res.status(500).json({ reserved: false, errMsg: err });
+                                        })
+                                }
                             })
-                                .then((data) => {
-                                    if (data) {
-                                        res.status(502).json({ reserved: false, errMsg: "wrong already reserved" });
-                                    } else {
-                                        MovieModel.updateOne({
-                                            _id: movieId, 'screenings._id': screeningId
-                                        }, { $addToSet: { "screenings.$.reservations": { row, column } } })
-                                            .then(() => {
-                                                res.status(200).json({ reserved: true });
-                                            })
-                                            .catch((err) => {
-                                                res.status(500).json({ reserved: false, errMsg: err });
-                                            })
-                                    }
-                                })
 
                         } else {
                             res.status(502).json({ reserved: false, errMsg: "wrong seat" });
