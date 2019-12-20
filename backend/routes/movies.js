@@ -22,7 +22,7 @@ moviesRouter.post('', (req, res) => {
 });
 
 moviesRouter.get('', (req, res) => {
-    db.find(MovieModel, {}, { screenings: 0 })
+    db.find(MovieModel, {})
         .then(data => {
             res.status(200).json(data);
         })
@@ -36,6 +36,7 @@ moviesRouter.get('', (req, res) => {
 moviesRouter.get('/screenings', (req, res) => {
     db.find(MovieModel, {}, { screenings: 1 })
         .then(data => {
+            console.log("\nrammmmmmmmmmmmmmmmy\n",data)
             res.status(200).json(data);
         })
         .catch((err) => {
