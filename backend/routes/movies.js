@@ -11,14 +11,26 @@ const moviesRouter = express.Router();
 
 moviesRouter.post('', (req, res) => {
     let movieData = { name, genre, screen, length } = req.body;
-    db.create(MovieModel, req.body)
+    db.findOne(ScreenModel, { sn: screen })
         .then((data) => {
-            res.status(200).json(data);
+            if (data) {
+                db.create(MovieModel, movieData)
+                    .then((data) => {
+                        res.status(200).json(data);
+                    })
+                    .catch((err) => {
+                        console.log("in posting new movie", err);
+                        res.status(500).json(err);
+                    });
+            } else {
+                res.status(500).json({ errMsh: "wrong screen number" });
+            }
         })
         .catch((err) => {
             console.log("in posting new movie", err);
-            res.status(500).json(err);
+            res.status(500).json({ errMsh: err });
         });
+
 });
 
 moviesRouter.get('', (req, res) => {
