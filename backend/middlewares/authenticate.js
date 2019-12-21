@@ -1,8 +1,7 @@
-module.exports = function (req, res, next) {
+module.exports = function(req, res, next) {
     if (req.headers.decodedtoken) {
-        next()
+        next();
     } else {
-        res.status(401).json({ msg: 'Unauthorized access' });
+        res.status(401).json({ msg: "unaithenticated access" });
     }
-
-}
+};

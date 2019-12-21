@@ -1,7 +1,6 @@
 import React, { Component } from "react";
 import { Nav, Navbar, NavDropdown, Button } from "react-bootstrap";
 import { userContext } from "../userContext";
-import { withRouter } from "react-router-dom";
 import createBrowserHistory from "history/createBrowserHistory";
 
 class Navigation extends Component {
@@ -38,7 +37,7 @@ class Navigation extends Component {
                             </Navbar.Collapse>
                             {user.name && (
                                 <Button
-                                    bsStyle="primary"
+                                    bsstyle="primary"
                                     onClick={e => {
                                         this.logOut(user);
                                     }}
