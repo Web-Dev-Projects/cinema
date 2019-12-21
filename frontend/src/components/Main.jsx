@@ -1,63 +1,64 @@
-import React, { Component } from 'react';
-import MovieCard from './MovieCard'
+import React, { Component } from "react";
+import { Redirect } from "react-router-dom";
+import MovieCard from "./MovieCard";
 
-import { userContext } from '../userContext';
+import { userContext } from "../userContext";
 
-import MovieList from './MovieList'
-import MovieListAdmin from './MovieListAdmin'
+import MovieList from "./MovieList";
+import MovieListAdmin from "./MovieListAdmin";
 
-import { getAllMoviesRequest } from './../dataProvider'
-
-
-
-
+import { getAllMoviesRequest } from "./../dataProvider";
 
 class Main extends Component {
-
-    state ={
-        movies:[]
+    state = {
+        movies: []
     };
 
     componentDidMount() {
-
-        this.getAllMovies()
+        this.getAllMovies();
     }
 
     render() {
-
         return (
             <userContext.Consumer>
                 {({ user, setUser }) => {
-                    console.log(user.admin,"user admin")
-                    if (user.admin==true)
-                    {
-                        return (<MovieListAdmin  movies={this.state.movies} success = {this.getAllMovies}/>)
+                    if (!user.name) {
+                        return (
+                            <div>
+                                <Redirect to="/login" />
+                            </div>
+                        );
                     }
 
-                    return (<MovieList movies={this.state.movies} />)
+                    console.log(user.admin, "user admin");
+                    if (user.admin == true) {
+                        return (
+                            <MovieListAdmin
+                                movies={this.state.movies}
+                                success={this.getAllMovies}
+                            />
+                        );
+                    }
 
+                    return <MovieList movies={this.state.movies} />;
                 }}
             </userContext.Consumer>
         );
     }
 
-    getAllMovies= () =>
-    {
-        const success = (response) => {
-            console.log(response.data)
+    getAllMovies = () => {
+        const success = response => {
+            console.log(response.data);
             this.setState({
                 movies: response.data
-            })
+            });
+        };
 
-        }
+        const getMovies = () => {
+            getAllMoviesRequest(success);
+        };
 
-        const getMovies = () => { getAllMoviesRequest(success) }
-
-        getMovies()
-
-      
-  
-    }
-
+        getMovies();
+    };
 }
 export default Main;
