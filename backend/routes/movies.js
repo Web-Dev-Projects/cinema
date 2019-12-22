@@ -8,10 +8,8 @@ const tokenDecoder = require("../middlewares/access-token-decode");
 const db = require("../db");
 
 const moviesRouter = express.Router();
-
-moviesRouter.all([tokenDecoder, authenticate]);
-
-moviesRouter.post("", [adminAuthorize], (req, res) => {
+// add authentication and aouthoriations
+moviesRouter.post("", (req, res) => {
     let movieData = ({ name, genre, screen, length } = req.body);
     db.findOne(ScreenModel, { sn: screen })
         .then(data => {
@@ -165,7 +163,7 @@ moviesRouter.put("/reserve/:movieId/:screeningId", (req, res) => {
                                         errMsg: "wrong already reserved"
                                     });
                                 } else {
-                                    MovieModel.updateOne(
+                                    MovieModel.findOneAndUpdate(
                                         {
                                             _id: movieId,
                                             "screenings._id": screeningId
@@ -177,13 +175,18 @@ moviesRouter.put("/reserve/:movieId/:screeningId", (req, res) => {
                                                     column
                                                 }
                                             }
-                                        }
-                                    )
-                                        .then(() => {
-                                            res.status(200).json({
-                                                reserved: true
-                                            });
-                                        })
+                                        }, {
+                                        new: true,
+                                        useFindAndModify: true
+                                    }).then((data) => {
+                                        id = ''
+                                        screening = data.screenings.filter((screening) => screening._id == screeningId)[0]
+                                        reservation = screening.reservations.filter((reservation) => reservation.row == row && reservation.column == column)[0]
+                                        res.status(200).json({
+                                            _id: reservation._id,
+                                            reserved: true
+                                        });
+                                    })
                                         .catch(err => {
                                             res.status(500).json({
                                                 reserved: false,
