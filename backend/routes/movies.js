@@ -147,10 +147,10 @@ moviesRouter.put("/reserve/:movieId/:screeningId", (req, res) => {
                     .then(data => {
                         if (
                             data &&
-                            0 <= row &&
-                            row < data.rows &&
-                            0 <= column &&
-                            column < data.columns
+                            1 <= row &&
+                            row <= data.rows &&
+                            1 <= column &&
+                            column <= data.columns
                         ) {
                             MovieModel.findOne({
                                 _id: movieId,
