@@ -25,10 +25,10 @@ usersRouter.post('/signin', (req, res) => {
 usersRouter.post('/signup', (req, res) => {
     let userData = { username, password, firstname, lastname, email, birthdate } = req.body;
     userData.birthdate = Date(birthdate)
-    db.findOne(UserModel, { username: userData.username })
+    db.findOne(UserModel, { $or: [{ email: userData.email }, { username: userData.username }] })
         .then((user) => {
             if (user) {
-                res.status(400).json({ msg: "username already exists" });
+                res.status(400).json({ msg: "username or email is  already exists" });
             } else {
                 db.create(UserModel, userData)
                     .then(() => {
@@ -39,7 +39,7 @@ usersRouter.post('/signup', (req, res) => {
                     })
             }
         }).catch((err) => {
-            res.status(500).json(err);
+            res.status(500).json({ errMsg: err.errmsg });
         })
 });
 
