@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { Card, Button, Form,Col} from 'react-bootstrap';
-import {  Redirect,Link } from 'react-router-dom';
+import {  Redirect } from 'react-router-dom';
 
 import { Formik } from 'formik';
 import * as yup from 'yup';
