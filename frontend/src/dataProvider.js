@@ -15,6 +15,29 @@ function logInRequest(userName, password, success) {
         });
 }
 
+function reserveSeat(movieId, screenTime, row, column,success) {
+    console.log(url + "movies/reserve/"+movieId+"/"+screenTime);
+    axios
+        .put(url + "movies/reserve/" + movieId + "/" + screenTime, {
+            row: row,
+            column: column
+        })
+        .then(success)
+        .catch(function (error) {
+            console.log(error);
+        });
+}
+
+function getReservationOfMovie(movieId, screenTime,success) {
+    console.log(url + "movies/reserve/" + movieId + "/" + screenTime);
+    axios
+        .get(url + "movies/reserve/" + movieId + "/" + screenTime)
+        .then(success)
+        .catch(function (error) {
+            console.log(error);
+        });
+}
+
 function signUpRequest(
     userName,
     lastName,
@@ -94,5 +117,7 @@ export {
     getAllMoviesRequest,
     addMovieRequest,
     addScreening,
-    getScreen
+    getScreen,
+    reserveSeat,
+    getReservationOfMovie
 };

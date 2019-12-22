@@ -1,7 +1,9 @@
 import React, { Component } from "react";
 import { useParams } from 'react-router-dom';
 
-import {getScreen} from '../dataProvider.js';
+import { Modal,Button } from "react-bootstrap";
+
+import { getScreen, reserveSeat, getReservationOfMovie} from '../dataProvider.js';
 
 export class GraphicalRepresentation extends Component {
 
@@ -12,7 +14,8 @@ export class GraphicalRepresentation extends Component {
         reservedSeats: [],
         rows: 15, 
         cols: 15, 
-        Myseats: []
+        Myseats: [],
+        dialog:false
 
     }
     makeSeats= () =>
@@ -95,6 +98,17 @@ export class GraphicalRepresentation extends Component {
 
             //--------Allow max 5 to be booked---------//
             //----We remove the first added element-------//
+            if (Myseats.length > 1) {
+                let last = Myseats.splice(0, 1);
+                console.log('last', last);
+                AllSeats[last[0].row - 1][last[0].col - 1] = 'btn-primary';
+                this.setState({
+                    AllSeats: AllSeats,
+                    Myseats:Myseats
+                });
+                //console.log(this.state)
+                return true;
+            }
  
             this.setState({
                 AllSeats : AllSeats,
@@ -112,13 +126,85 @@ export class GraphicalRepresentation extends Component {
         this.getScreenSize()
     }
 
-    //-----------TODO---------//
-    SubmitReservation(e){
+    getReservedSeats = () =>
+    {
+        let { screenId, movieId, screenTimeId } = this.props.match.params;
 
+        function changeJsonKeys(value) {
+            return {
+                row:value["row"],
+                col:value["column"]
+            }
+        }
+        const success = (response) =>
+        {
+            let resList = response.data
+
+            console.log(resList)
+
+            let reservations = resList.map(changeJsonKeys);
+
+            console.log(reservations)
+
+            this.setState({ reservedSeats: reservations})
+            this.makeSeatsReserved()
+        }
+
+        getReservationOfMovie(movieId,screenTimeId,success)
+    }
+
+    //-----------TODO---------//
+    SubmitReservation = (e,row,col) =>{
+        let { screenId, movieId, screenTimeId } = this.props.match.params;
+
+        const success = (response) => 
+        {
+            console.log(response)
+            this.getReservedSeats()
+
+        }
+
+        reserveSeat(movieId, screenTimeId, row,col,success)
+
+    }
+
+    showDialog = (e) =>
+    {
+        this.setState({dialog:true})
     }
 
 
     render() {
+
+        if (this.state.dialog)
+        {
+            let Myseats = this.state.Myseats
+            console.log(Myseats)
+
+            let last = Myseats.splice(0, 1);
+            let AllSeats = this.state.AllSeats
+            AllSeats[last[0].row - 1][last[0].col - 1] = 'btn-primary';
+
+            let row = last[0].row
+            let col = last[0].col
+            return (
+                <Modal.Dialog>
+                    <Modal.Header closeButton>
+                        <Modal.Title>Confirm Ticket</Modal.Title>
+                    </Modal.Header>
+
+                    <Modal.Body>
+                        <p>your position at row {row} and column {col}.</p>
+                    </Modal.Body>
+
+                    <Modal.Footer>
+                        <Button variant="secondary" onClick={() => { this.setState({ AllSeats:AllSeats,dialog: false, Myseats: Myseats})}}>Close</Button>
+                        <   Button variant="primary" onClick={(e) => { this.SubmitReservation(e, row, col) 
+                                                                      this.setState({ AllSeats: AllSeats, dialog: false, Myseats: Myseats })}} >Save changes</Button>
+                    </Modal.Footer>
+                </Modal.Dialog>
+            )
+        }
 
         return (
             <div className='container mt-5'>
@@ -154,7 +240,7 @@ export class GraphicalRepresentation extends Component {
 
                         </table>
                         <div className='text-center mb-5'>
-                            <button className='btn btn-success btn-lg' onClick={ (e) => this.SubmitReservation(e)}>Get your ticket</button>
+                            <button className='btn btn-success btn-lg' onClick={ (e) => this.showDialog(e)}>Get your ticket</button>
                         </div>
                     </div>
                 </div>
@@ -177,12 +263,34 @@ export class GraphicalRepresentation extends Component {
                     cols: response.data[0].columns,
 
                 })
+            this.getReservedSeats()
             this.makeSeats()
+            this.makeSeatsReserved()
+
+
         }
         getScreen(screenId, Success)
 
 
 
+    }
+    makeSeatsReserved = () =>{
+
+        let AllSeats=this.state.AllSeats
+        for (let i = 0; i < this.state.reservedSeats.length; i++) {
+
+
+            let resrvedRow = this.state.reservedSeats[i].row
+            let resrvedCol = this.state.reservedSeats[i].col
+            console.log(resrvedRow)
+
+            console.log(resrvedCol)
+            AllSeats[resrvedRow - 1][resrvedCol - 1] = 'btn-danger';
+
+            console.log(AllSeats)
+
+            this.setState({AllSeats:AllSeats})
+        }
     }
 }
 
