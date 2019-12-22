@@ -1,25 +1,27 @@
 import React, { Component } from "react";
 import { useParams } from 'react-router-dom';
+import { Redirect } from "react-router-dom";
 
-import { Modal,Button } from "react-bootstrap";
+import { userContext } from "../userContext";
 
-import { getScreen, reserveSeat, getReservationOfMovie} from '../dataProvider.js';
+import { Modal, Button } from "react-bootstrap";
+
+import { getScreen, reserveSeat, getReservationOfMovie } from '../dataProvider.js';
 
 export class GraphicalRepresentation extends Component {
 
     index = 1;
 
-    state={
+    state = {
         AllSeats: [],
         reservedSeats: [],
-        rows: 15, 
-        cols: 15, 
+        rows: 15,
+        cols: 15,
         Myseats: [],
-        dialog:false
+        dialog: false
 
     }
-    makeSeats= () =>
-    {
+    makeSeats = () => {
         // create arrays columns and rows
         let AllSeats = this.state.AllSeats
 
@@ -56,19 +58,19 @@ export class GraphicalRepresentation extends Component {
                 cols: cols,  // socket2 from db
             }
         )
-    
+
     }
     // when user clicks a button we take his col and row info and reserve it in database
     Reserve(e, colIndex, RowIndex) {
 
-    //1.---------------Check Clicked seat validation----------------//
+        //1.---------------Check Clicked seat validation----------------//
         this.index = 1;
 
-        let AllSeats= this.state.AllSeats;
+        let AllSeats = this.state.AllSeats;
 
-        let Myseats = this.state.Myseats    ;    
+        let Myseats = this.state.Myseats;
         //1.1---------check if reserved before-------//
-        if(this.state.reservedSeats.find(seat => (seat.row === RowIndex && seat.col === colIndex))){
+        if (this.state.reservedSeats.find(seat => (seat.row === RowIndex && seat.col === colIndex))) {
             alert('It is reserved select anothe seact')
             return true;
         }
@@ -76,16 +78,16 @@ export class GraphicalRepresentation extends Component {
 
         //1.2---------check if seat exists in my reservation----if yes change color to primary 
         //--------------------and delete element from reservation--------------------//
-        if(  Myseats.find(seat => (seat.row === RowIndex && seat.col === colIndex))){
+        if (Myseats.find(seat => (seat.row === RowIndex && seat.col === colIndex))) {
             console.log('alreaady exists so change color to primary');
-            AllSeats[RowIndex-1][colIndex-1] = 'btn-primary';
+            AllSeats[RowIndex - 1][colIndex - 1] = 'btn-primary';
             //----Note when you delete an object do this vars can not do the job :D-----//
             let indexOfSeat = Myseats.indexOf(Myseats.find(seat =>
-                 (seat.row === RowIndex && seat.col === colIndex)));
+                (seat.row === RowIndex && seat.col === colIndex)));
 
-            Myseats.splice(indexOfSeat,1);
+            Myseats.splice(indexOfSeat, 1);
             this.setState({
-                AllSeats : AllSeats
+                AllSeats: AllSeats
             });
             return true;
         } else {
@@ -93,8 +95,8 @@ export class GraphicalRepresentation extends Component {
 
 
 
-            Myseats.push({col : colIndex, row : RowIndex});
-            AllSeats[RowIndex-1][colIndex-1] = 'btn-dark';
+            Myseats.push({ col: colIndex, row: RowIndex });
+            AllSeats[RowIndex - 1][colIndex - 1] = 'btn-dark';
 
             //--------Allow max 5 to be booked---------//
             //----We remove the first added element-------//
@@ -104,15 +106,15 @@ export class GraphicalRepresentation extends Component {
                 AllSeats[last[0].row - 1][last[0].col - 1] = 'btn-primary';
                 this.setState({
                     AllSeats: AllSeats,
-                    Myseats:Myseats
+                    Myseats: Myseats
                 });
                 //console.log(this.state)
                 return true;
             }
- 
+
             this.setState({
-                AllSeats : AllSeats,
-                Myseats : Myseats
+                AllSeats: AllSeats,
+                Myseats: Myseats
             });
             console.log(colIndex, RowIndex)
             console.log('MySeats', this.state.Myseats)
@@ -121,23 +123,20 @@ export class GraphicalRepresentation extends Component {
 
     }
 
-    componentDidMount ()
-    {
+    componentDidMount() {
         this.getScreenSize()
     }
 
-    getReservedSeats = () =>
-    {
+    getReservedSeats = () => {
         let { screenId, movieId, screenTimeId } = this.props.match.params;
 
         function changeJsonKeys(value) {
             return {
-                row:value["row"],
-                col:value["column"]
+                row: value["row"],
+                col: value["column"]
             }
         }
-        const success = (response) =>
-        {
+        const success = (response) => {
             let resList = response.data
 
             console.log(resList)
@@ -146,38 +145,35 @@ export class GraphicalRepresentation extends Component {
 
             console.log(reservations)
 
-            this.setState({ reservedSeats: reservations})
+            this.setState({ reservedSeats: reservations })
             this.makeSeatsReserved()
         }
 
-        getReservationOfMovie(movieId,screenTimeId,success)
+        getReservationOfMovie(movieId, screenTimeId, success)
     }
 
     //-----------TODO---------//
-    SubmitReservation = (e,row,col) =>{
+    SubmitReservation = (e, row, col) => {
         let { screenId, movieId, screenTimeId } = this.props.match.params;
 
-        const success = (response) => 
-        {
+        const success = (response) => {
             console.log(response)
             this.getReservedSeats()
 
         }
 
-        reserveSeat(movieId, screenTimeId, row,col,success)
+        reserveSeat(movieId, screenTimeId, row, col, success)
 
     }
 
-    showDialog = (e) =>
-    {
-        this.setState({dialog:true})
+    showDialog = (e) => {
+        this.setState({ dialog: true })
     }
 
 
     render() {
 
-        if (this.state.dialog)
-        {
+        if (this.state.dialog) {
             let Myseats = this.state.Myseats
             console.log(Myseats)
 
@@ -198,68 +194,80 @@ export class GraphicalRepresentation extends Component {
                     </Modal.Body>
 
                     <Modal.Footer>
-                        <Button variant="secondary" onClick={() => { this.setState({ AllSeats:AllSeats,dialog: false, Myseats: Myseats})}}>Close</Button>
-                        <   Button variant="primary" onClick={(e) => { this.SubmitReservation(e, row, col) 
-                                                                      this.setState({ AllSeats: AllSeats, dialog: false, Myseats: Myseats })}} >Save changes</Button>
+                        <Button variant="secondary" onClick={() => { this.setState({ AllSeats: AllSeats, dialog: false, Myseats: Myseats }) }}>Close</Button>
+                        <   Button variant="primary" onClick={(e) => {
+                            this.SubmitReservation(e, row, col)
+                            this.setState({ AllSeats: AllSeats, dialog: false, Myseats: Myseats })
+                        }} >Save changes</Button>
                     </Modal.Footer>
                 </Modal.Dialog>
             )
         }
 
         return (
-            <div className='container mt-5'>
-                <div className='row'>
-                    <div className='col-md-6'>
-                        <h4 className='badge badge-info p-2 col-md-4'>Selected seats: {this.state.Myseats.length}</h4>
-                    </div>
+            <userContext.Consumer>
+                {({ user, setUser }) => {
+                    if (!user.name) {
+                        return (
+                            <div>
+                                <Redirect to="/login" />
+                            </div>
+                        );
+                    }
+                    return (<div className='container mt-5'>
+                        <div className='row'>
+                            <div className='col-md-6'>
+                                <h4 className='badge badge-info p-2 col-md-4'>Selected seats: {this.state.Myseats.length}</h4>
+                            </div>
 
-                </div>
-                <div className='row'>
-                    <div className='col-md-12'>
-                        <table className="table">
-                            <thead></thead>
-                            {/* -----convert each array element into ------- */}
-                            {/* ----------map throw each element in 2d array we created--------*/}
-                            <tbody>
-                                {this.state.AllSeats.map((row, RowIndex) => {
-                                    return (<tr key={RowIndex}>
-                                        {row.map((col, ColIndex) =>
-                                            // storing our seatNumber With indxes I don not understand binding
-                                            <td key={ColIndex}><button onClick={(e) =>
-                                                this.Reserve(e, ColIndex + 1, RowIndex + 1)}
-                                                /* ------check if our seat is reserved or not----- */
-                                                /* ----------TODO convert bt-danger && btn-primary into variable string */
-                                                className={"btn  btn-block " + this.state.AllSeats[RowIndex][ColIndex]} 
-                                                 value={this.index}>
-                                                {this.index++}</button></td>
-                                        )}
-                                    </tr>);
-                                }
-                                )}
-                            </tbody>
-
-                        </table>
-                        <div className='text-center mb-5'>
-                            <button className='btn btn-success btn-lg' onClick={ (e) => this.showDialog(e)}>Get your ticket</button>
                         </div>
-                    </div>
-                </div>
-            </div>
+                        <div className='row'>
+                            <div className='col-md-12'>
+                                <table className="table">
+                                    <thead></thead>
+                                    {/* -----convert each array element into ------- */}
+                                    {/* ----------map throw each element in 2d array we created--------*/}
+                                    <tbody>
+                                        {this.state.AllSeats.map((row, RowIndex) => {
+                                            return (<tr key={RowIndex}>
+                                                {row.map((col, ColIndex) =>
+                                                    // storing our seatNumber With indxes I don not understand binding
+                                                    <td key={ColIndex}><button onClick={(e) =>
+                                                        this.Reserve(e, ColIndex + 1, RowIndex + 1)}
+                                                        /* ------check if our seat is reserved or not----- */
+                                                        /* ----------TODO convert bt-danger && btn-primary into variable string */
+                                                        className={"btn  btn-block " + this.state.AllSeats[RowIndex][ColIndex]}
+                                                        value={this.index}>
+                                                        {RowIndex * this.state.cols + ColIndex + 1}</button></td>
+                                                )}
+                                            </tr>);
+                                        }
+                                        )}
+                                    </tbody>
+
+                                </table>
+                                <div className='text-center mb-5'>
+                                    <button className='btn btn-success btn-lg' onClick={(e) => this.showDialog(e)}>Get your ticket</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>)
+                }}
+            </userContext.Consumer>
+
         );
     }
 
-    getScreenSize = ()=>
-    {
-        let { screenId, movieId, screenTimeId } =this.props.match.params;
+    getScreenSize = () => {
+        let { screenId, movieId, screenTimeId } = this.props.match.params;
 
         console.log(screenId, movieId, screenTimeId)
 
-        const Success = (response) =>
-        {
+        const Success = (response) => {
             console.log(response.data[0])
             this.setState(
                 {
-                    rows:response.data[0].rows,
+                    rows: response.data[0].rows,
                     cols: response.data[0].columns,
 
                 })
@@ -274,9 +282,9 @@ export class GraphicalRepresentation extends Component {
 
 
     }
-    makeSeatsReserved = () =>{
+    makeSeatsReserved = () => {
 
-        let AllSeats=this.state.AllSeats
+        let AllSeats = this.state.AllSeats
         for (let i = 0; i < this.state.reservedSeats.length; i++) {
 
 
@@ -289,7 +297,7 @@ export class GraphicalRepresentation extends Component {
 
             console.log(AllSeats)
 
-            this.setState({AllSeats:AllSeats})
+            this.setState({ AllSeats: AllSeats })
         }
     }
 }
