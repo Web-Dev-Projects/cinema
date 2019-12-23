@@ -150,51 +150,70 @@ moviesRouter.put("/reserve/:movieId/:screeningId", (req, res) => {
                             1 <= column &&
                             column <= data.columns
                         ) {
+                            // let agger = [{ "$match": { _id: movieId } }
+                            //     { '$unwind': "$screenings" },
+
+                            // ]
+
                             MovieModel.findOne({
                                 _id: movieId,
-                                "screenings._id": screeningId,
-                                "screenings.reservations": {
-                                    $elemMatch: { row: row, column: column }
-                                }
-                            }).then(data => {
-                                if (data) {
-                                    res.status(502).json({
-                                        reserved: false,
-                                        errMsg: "wrong already reserved"
-                                    });
-                                } else {
-                                    MovieModel.findOneAndUpdate(
-                                        {
-                                            _id: movieId,
-                                            "screenings._id": screeningId
-                                        },
-                                        {
-                                            $addToSet: {
-                                                "screenings.$.reservations": {
-                                                    row,
-                                                    column
-                                                }
-                                            }
-                                        }, {
-                                        new: true,
-                                        useFindAndModify: true
-                                    }).then((data) => {
-                                        id = ''
-                                        screening = data.screenings.filter((screening) => screening._id == screeningId)[0]
-                                        reservation = screening.reservations.filter((reservation) => reservation.row == row && reservation.column == column)[0]
-                                        res.status(200).json({
-                                            _id: reservation._id,
-                                            reserved: true
-                                        });
-                                    })
-                                        .catch(err => {
-                                            res.status(500).json({
+                            })
+                                .then(data => {
+                                    screening = data.screenings.filter(screening => screening._id == screeningId)[0]
+                                    if (screening) {
+                                        reservation = screening.reservations.filter(reservation => reservation.row == row && reservation.column == column)[0]
+                                        if (reservation) {
+                                            res.status(502).json({
                                                 reserved: false,
-                                                errMsg: err
+                                                errMsg: "wrong already reserved"
                                             });
+                                        } else {
+                                            data = data.toObject()
+                                            screenings = data.screenings.map((screening) => {
+                                                if (screening._id != screeningId)
+                                                    return screening
+                                                screening.reservations.push({ row, column })
+                                                return screening
+                                            })
+
+                                            MovieModel.findOneAndUpdate({
+                                                _id: movieId,
+
+                                            }, { $set: { screenings: screenings } },
+                                                {
+                                                    new: true,
+                                                    useFindAndModify: true
+                                                }).then((data) => {
+                                                    id = ''
+                                                    screening = data.screenings.filter((screening) => screening._id == screeningId)[0]
+                                                    reservation = screening.reservations.filter((reservation) => reservation.row == row && reservation.column == column)[0]
+                                                    res.status(200).json({
+                                                        _id: reservation._id,
+                                                        reserved: true
+                                                    });
+                                                }).catch(err => {
+                                                    res.status(500).json({
+                                                        reserved: false,
+                                                        errMsg: err
+                                                    });
+                                                });
+
+                                        }
+
+                                    } else {
+                                        res.status(500).json({
+                                            reserved: false,
+                                            errMsg: "screening not found"
                                         });
-                                }
-                            });
+
+                                    }
+                                }).catch((err) => {
+                                    console.log(err)
+                                    res.status(500).json({
+                                        reserved: false,
+                                        errMsg: err
+                                    });
+                                })
                         } else {
                             res.status(502).json({
                                 reserved: false,
