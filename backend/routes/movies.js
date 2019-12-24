@@ -150,11 +150,6 @@ moviesRouter.put("/reserve/:movieId/:screeningId", (req, res) => {
                             1 <= column &&
                             column <= data.columns
                         ) {
-                            // let agger = [{ "$match": { _id: movieId } }
-                            //     { '$unwind': "$screenings" },
-
-                            // ]
-
                             MovieModel.findOne({
                                 _id: movieId,
                             })
@@ -240,12 +235,11 @@ moviesRouter.get("/reserve/:movieId/:screeningId", (req, res) => {
     let { movieId, screeningId } = req.params;
     db.findOne(
         MovieModel,
-        { _id: movieId, "screenings._id": screeningId },
-        { "screenings.reservations": 1 }
-    )
+        { _id: movieId })
         .then(data => {
-            if (data) {
-                res.status(200).json(data.screenings[0].reservations);
+            screening = data.screenings.filter(screening => screening._id == screeningId)[0]
+            if (screening) {
+                res.status(200).json(screening.reservations);
             } else {
                 res.status(502).json({
                     errMsg: "wrong movieid and/or screeningid"
