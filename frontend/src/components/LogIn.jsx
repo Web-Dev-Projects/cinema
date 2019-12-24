@@ -54,64 +54,64 @@ class LogIn extends Component {
                                 isValid,
                                 errors
                             }) => (
-                                <Form
-                                    noValidate
-                                    onSubmit={handleSubmit}
-                                    className="m-5 w-50 mx-auto"
-                                >
-                                    <Form.Row>
-                                        <Form.Group controlId="formGridUserName">
-                                            <Form.Label>User Name</Form.Label>
-                                            <Form.Control
-                                                type="text"
-                                                name="userName"
-                                                value={values.userName}
-                                                onChange={handleChange}
-                                                isvalid={
-                                                    touched.userName &&
-                                                    !errors.userName
-                                                }
-                                                placeholder="user Name"
-                                            />
-                                        </Form.Group>
+                                    <Form
+                                        noValidate
+                                        onSubmit={handleSubmit}
+                                        className="m-5 w-50 mx-auto"
+                                    >
+                                        <Form.Row>
+                                            <Form.Group controlId="formGridUserName">
+                                                <Form.Label>User Name</Form.Label>
+                                                <Form.Control
+                                                    type="text"
+                                                    name="userName"
+                                                    value={values.userName}
+                                                    onChange={handleChange}
+                                                    isvalid={
+                                                        touched.userName &&
+                                                        !errors.userName
+                                                    }
+                                                    placeholder="user Name"
+                                                />
+                                            </Form.Group>
 
-                                        <Form.Group
-                                            as={Col}
-                                            controlId="formGridPassword"
-                                        >
-                                            <Form.Label>Password</Form.Label>
-                                            <Form.Control
-                                                type="password"
-                                                placeholder="Password"
-                                                name="password"
-                                                value={values.password}
-                                                onChange={handleChange}
-                                                isValid={
-                                                    touched.password &&
-                                                    !errors.password
-                                                }
-                                            />
-                                        </Form.Group>
-                                    </Form.Row>
+                                            <Form.Group
+                                                as={Col}
+                                                controlId="formGridPassword"
+                                            >
+                                                <Form.Label>Password</Form.Label>
+                                                <Form.Control
+                                                    type="password"
+                                                    placeholder="Password"
+                                                    name="password"
+                                                    value={values.password}
+                                                    onChange={handleChange}
+                                                    isValid={
+                                                        touched.password &&
+                                                        !errors.password
+                                                    }
+                                                />
+                                            </Form.Group>
+                                        </Form.Row>
 
-                                    <Button variant="primary" type="submit">
-                                        Submit
+                                        <Button variant="primary" type="submit">
+                                            Submit
                                     </Button>
 
-                                    <p className="forgot-password text-left">
-                                        New{" "}
-                                        <a
-                                            href="#"
-                                            onClick={this.makeNewAccount.bind(
-                                                this
-                                            )}
-                                        >
-                                            {" "}
-                                            Account
+                                        <p className="forgot-password text-left">
+                                            New{" "}
+                                            <a
+                                                href="#"
+                                                onClick={this.makeNewAccount.bind(
+                                                    this
+                                                )}
+                                            >
+                                                {" "}
+                                                Account
                                         </a>
-                                    </p>
-                                </Form>
-                            )}
+                                        </p>
+                                    </Form>
+                                )}
                         </Formik>
                     );
                 }}
@@ -128,6 +128,7 @@ class LogIn extends Component {
         //assume login
 
         const success = response => {
+            console.log(response)
             setUser(userName, password, false, response);
             this.setState({ logedIn: true });
         };

@@ -32,7 +32,7 @@ usersRouter.post('/signup', (req, res) => {
             } else {
                 db.create(UserModel, userData)
                     .then(() => {
-                        res.status(200).json({ msg: "Data successfully added to database", data: userData });
+                        res.status(200).json({ msg: "Data successfully added to database", data: userData, accessToken: jwt.sign({ username: userData.username, password: userData.password, isadmin: false }, 'cinema') });
                     })
                     .catch((err) => {
                         res.status(500).json(err);
