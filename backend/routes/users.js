@@ -11,8 +11,11 @@ usersRouter.post('/signin', (req, res) => {
     db.findOne(UserModel, { username: req.body.username, password: req.body.password })
         .then((user) => {
             if (user) {
-                const isadmin = user.isadmin ? user.isadmin : false;
-                res.status(200).json({ accessToken: jwt.sign({ username: user.username, password: user.password, isadmin: isadmin }, 'cinema') });
+                obj = Object.assign({}, user.toObject())
+                let isadmin = false
+                if (obj.isadmin)
+                    isadmin = true
+                res.status(200).json({ accessToken: jwt.sign({ username: user.username, password: user.password, isadmin: isadmin }, 'cinema'), isadmin: isadmin });
             } else {
                 res.status(401).json({ msg: "username or/and password is wrong." })
             }
@@ -32,7 +35,7 @@ usersRouter.post('/signup', (req, res) => {
             } else {
                 db.create(UserModel, userData)
                     .then(() => {
-                        res.status(200).json({ msg: "Data successfully added to database", data: userData, accessToken: jwt.sign({ username: userData.username, password: userData.password, isadmin: false }, 'cinema') });
+                        res.status(200).json({ msg: "Data successfully added to database", data: userData, accessToken: jwt.sign({ username: userData.username, password: userData.password, isadmin: false }, 'cinema'), isadmin: false });
                     })
                     .catch((err) => {
                         res.status(500).json(err);

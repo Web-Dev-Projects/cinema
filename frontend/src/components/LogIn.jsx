@@ -129,7 +129,7 @@ class LogIn extends Component {
 
         const success = response => {
             console.log(response)
-            setUser(userName, password, false, response);
+            setUser(userName, password, response.data.isadmin, response);
             this.setState({ logedIn: true });
         };
 
